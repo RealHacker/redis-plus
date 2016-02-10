@@ -329,6 +329,83 @@ void lindexCommand(client *c) {
     }
 }
 
+/*
+    LFIND command: find the first index after STARTPOS with value VALUE
+    LFIND KEY STARTPOS VALUE
+    if searching for the first occurrence, pass STARTPOS as -1
+    returns -1 if:
+    1. value not found after STARTPOS
+    2. or if the KEY doesn't exist in db, or type is not LIST
+    3. or STARTPOS is larger than LENGTH of list
+    else return the index for value (starting from zero)
+    
+    Time: O(N)
+*/
+void lfindCommand(client* c) {
+    robj *subject, *val;
+    val = c->argv[3];
+    long startpos;
+    long index;
+    long len;
+    bool found = false;
+
+    if ((getLongFromObjectOrReply(c, c->argv[2], &startpos, NULL) != C_OK))
+        return;
+
+    subject = lookupKeyWrite(c,c->argv[1]);
+    if (subject == NULL || checkType(c,subject,OBJ_LIST) || startpos >= listTypeLength(subject)) {
+        addReplyLongLong(c, -1);
+        return;
+    }
+    
+    listTypeIterator *li;
+
+    li = listTypeInitIterator(subject, ++index, LIST_HEAD);
+    if(li.iter == NULL) {
+        // already moves after the last item
+        addReplyLongLong(c, -1);
+        return;
+    }
+    
+    while (listTypeNext(li,&entry)) {
+        if (listTypeEqual(&entry,val)) {
+            found = true;
+            break;
+        }
+        index++;
+    }
+    if !found {
+        addReplyLongLong(c, -1);
+        return;
+    }
+    addReplyLongLong(c, index);
+}
+
+/*
+    LREVERSE command: reverse the items in list
+    LREV KEY 
+    
+    Time: O(N)
+*/
+void lreverseCommand(client* c){
+    robj *o = lookupKeyWriteOrReply(c,c->argv[1],shared.nokeyerr);
+    if (checkType(c,o,OBJ_LIST)) {
+        addReply(c,shared.wrongtypeerr);
+        return;
+    }
+    if(listTypeLength(subject)<=1){
+        addReply(c,shared.ok);
+        return;
+    }
+    if (o->encoding == OBJ_ENCODING_QUICKLIST) {
+        quicklistReverse(o->ptr);
+        addReply(c,shared.ok);
+        return;
+    } else {
+        serverPanic("Unknown list encoding");
+    }
+}
+
 void lsetCommand(client *c) {
     robj *o = lookupKeyWriteOrReply(c,c->argv[1],shared.nokeyerr);
     if (o == NULL || checkType(c,o,OBJ_LIST)) return;

@@ -1409,6 +1409,11 @@ void quicklistPush(quicklist *quicklist, void *value, const size_t sz,
     }
 }
 
+/* Reverse a quicklist */
+void quicklistReverse(quickklist* quicklist){
+
+}
+
 /* The rest of this file is test cases and test helpers. */
 #ifdef REDIS_TEST
 #include <stdint.h>

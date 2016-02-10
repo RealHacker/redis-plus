@@ -699,6 +699,36 @@ void hdelCommand(client *c) {
     addReplyLongLong(c,deleted);
 }
 
+void hpopCommand(client *c){
+    robj  *o;
+    int deleted = 0, keyremoved = 0;
+
+    // make sure the key refers to a HASH
+    if (( o = lookupKeyWrite(c, c->argv[1])) == NULL || checkType(c, o, OBJ_HASH)) {
+        addReply(c, shared.wrongtypeerr);
+        return;
+    }
+    // the 2nd param is the key to pop
+    addHashFieldToReply(c, o, c->argv[2]);
+
+    // delete the hashmap key
+    if (hashTypeDelete(o,c->argv[2])) {
+        deleted = 1;
+        if (hashTypeLength(o) == 0) {
+            dbDelete(c->db,c->argv[1]);
+            keyremoved = 1;
+        }
+    }
+     if (deleted) {
+        signalModifiedKey(c->db,c->argv[1]);
+        notifyKeyspaceEvent(NOTIFY_HASH,"hpop",c->argv[1],c->db->id);
+        if (keyremoved)
+            notifyKeyspaceEvent(NOTIFY_GENERIC,"del",c->argv[1],
+                                c->db->id);
+        server.dirty += deleted;
+    }
+}
+
 void hlenCommand(client *c) {
     robj *o;
 
