@@ -406,6 +406,64 @@ void lreverseCommand(client* c){
     }
 }
 
+/*
+    LINSERTAT command: insert an item at specified index
+    LINSERTAT KEY INDEX VALUE
+    1. If INDEX <0, move cursor backwards from end
+    2. If INDEX >= LENGTH_OF_LIST, append the value at the end of list
+    3. ELSE, insert val before item at INDEX
+    return the new length of list
+*/
+void linsertat(client* c){
+    robj *subject;
+    listTypeIterator *iter;
+    listTypeEntry entry;
+    int inserted = 0;
+    int index;
+
+    if ((subject = lookupKeyWriteOrReply(c,c->argv[1],shared.czero)) == NULL ||
+        checkType(c,subject,OBJ_LIST)) return;
+
+    if ((getLongFromObjectOrReply(c, c->argv[2], &index, NULL) != C_OK))
+        return;
+    
+    val = c->argv[3];
+
+    int insertWhere = LIST_HEAD;
+    if(index >= listTypeLength(subject)){
+        // insert at the end of list, after the last element
+        iter = listTypeInitIterator(subject,-1,LIST_HEAD);
+        index = 0;
+        insertWhere = LIST_TAIL;
+    } else if(index < 0) {
+        iter = listTypeInitIterator(subject,-1,LIST_HEAD);
+        index = (-index)-1;
+    } else {
+        iter = listTypeInitIterator(subject,0,LIST_TAIL);
+    }
+
+    while (listTypeNext(iter,&entry)) {
+        if (index==0) {
+            listTypeInsert(&entry,val,insertWhere);
+            inserted = 1;
+            break;
+        }
+        index--;
+    }
+    listTypeReleaseIterator(iter);
+
+    if (inserted) {
+        signalModifiedKey(c->db,c->argv[1]);
+        notifyKeyspaceEvent(NOTIFY_LIST,"linsertat", c->argv[1],c->db->id);
+        server.dirty++;
+    } else {
+        addReply(c,shared.cnegone);
+        return;
+    }
+    // Return the new length of list
+    addReplyLongLong(c,listTypeLength(subject));
+}
+
 void lsetCommand(client *c) {
     robj *o = lookupKeyWriteOrReply(c,c->argv[1],shared.nokeyerr);
     if (o == NULL || checkType(c,o,OBJ_LIST)) return;
