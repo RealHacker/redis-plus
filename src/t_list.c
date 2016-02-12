@@ -427,7 +427,7 @@ void linsertat(client* c){
     if ((getLongFromObjectOrReply(c, c->argv[2], &index, NULL) != C_OK))
         return;
     
-    val = c->argv[3];
+    robj *val = c->argv[3];
 
     int insertWhere = LIST_HEAD;
     if(index >= listTypeLength(subject)){
@@ -462,6 +462,30 @@ void linsertat(client* c){
     }
     // Return the new length of list
     addReplyLongLong(c,listTypeLength(subject));
+}
+
+/*
+    LCOUNT KEY VALUE
+    count the number of elements in list with value VALUE
+*/
+void lcount(client* c){
+    robj *subject;
+    listTypeIterator *iter;
+    listTypeEntry entry;
+    int count = 0;
+    robj *val = c->argv[2];
+
+    if ((subject = lookupKeyWriteOrReply(c,c->argv[1],shared.czero)) == NULL ||
+        checkType(c,subject,OBJ_LIST)) return;
+
+    iter = listTypeInitIterator(subject,0,LIST_TAIL);
+    while (listTypeNext(iter,&entry)) {
+        if (listTypeEqual(&entry, val)) {
+            count++;
+        }
+    }
+    
+    addReplyLongLong(c, count);
 }
 
 void lsetCommand(client *c) {
