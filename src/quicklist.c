@@ -1410,7 +1410,7 @@ void quicklistPush(quicklist *quicklist, void *value, const size_t sz,
 }
 
 /* Reverse a quicklist */
-void quicklistReverse(quickklist* quicklist){
+void quicklistReverse(quicklist* quicklist){
     
 }
 
