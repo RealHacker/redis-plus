@@ -1633,6 +1633,13 @@ void pfmergeCommand(client *c);
 void pfdebugCommand(client *c);
 void latencyCommand(client *c);
 
+void lreverseCommand(client *c);
+void linsertat(client *c);
+void lcount(client *c);
+void lfindCommand(client *c);
+void sxorCommand(client *c);
+void hpopCommand(client *c);
+
 #if defined(__GNUC__)
 void *calloc(size_t count, size_t size) __attribute__ ((deprecated));
 void free(void *ptr) __attribute__ ((deprecated));
