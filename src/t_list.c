@@ -361,12 +361,13 @@ void lfindCommand(client* c) {
     listTypeIterator *li;
 
     li = listTypeInitIterator(subject, ++index, LIST_HEAD);
-    if(li.iter == NULL) {
+    if(li->iter == NULL) {
         // already moves after the last item
         addReplyLongLong(c, -1);
         return;
     }
-    
+
+    listTypeEntry entry;
     while (listTypeNext(li,&entry)) {
         if (listTypeEqual(&entry,val)) {
             found = true;
@@ -374,7 +375,7 @@ void lfindCommand(client* c) {
         }
         index++;
     }
-    if !found {
+    if(!found) {
         addReplyLongLong(c, -1);
         return;
     }
@@ -393,7 +394,7 @@ void lreverseCommand(client* c){
         addReply(c,shared.wrongtypeerr);
         return;
     }
-    if(listTypeLength(subject)<=1){
+    if(listTypeLength(o)<=1){
         addReply(c,shared.ok);
         return;
     }
