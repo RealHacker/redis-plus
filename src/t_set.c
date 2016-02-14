@@ -1108,6 +1108,49 @@ void sdiffstoreCommand(client *c) {
     sunionDiffGenericCommand(c,c->argv+2,c->argc-2,c->argv[1],SET_OP_DIFF);
 }
 
+/*
+    SXOR KEY1 KEY2
+    return the exclusive OR of the 2 sets
+*/
+void sxorCommand(client *c){
+    robj *setobj1 = lookupKeyRead(c->db,c->argv[1]);
+    robj *setobj2 = lookupKeyRead(c->db,c->argv[2]);
+    int cardinality = 0;
+    if (checkType(c,setobj1,OBJ_SET) || checkType(c, setobj2, OBJ_SET)) {
+        return;
+    }
+
+    robj *dstset = createIntsetObject();
+    setTypeIterator *si;
+
+    si = setTypeInitIterator(setobj1);
+    while((ele = setTypeNextObject(si)) != NULL) {
+        if (setTypeIsMember(setobj2,ele)) break;
+        setTypeAdd(dstset,ele);
+        cardinality++;
+        decrRefCount(ele);
+    }
+    setTypeReleaseIterator(si);
+
+    si = setTypeInitIterator(setobj2);
+    while((ele = setTypeNextObject(si)) != NULL) {
+        if (setTypeIsMember(setobj1,ele)) break;
+        setTypeAdd(dstset,ele);
+        cardinality++;
+        decrRefCount(ele);
+    }
+    setTypeReleaseIterator(si);
+
+    addReplyMultiBulkLen(c,cardinality);
+    si = setTypeInitIterator(dstset);
+    while((ele = setTypeNextObject(si)) != NULL) {
+        addReplyBulk(c,ele);
+        decrRefCount(ele);
+    }
+    setTypeReleaseIterator(si);
+    decrRefCount(dstset);
+}
+
 void sscanCommand(client *c) {
     robj *set;
     unsigned long cursor;

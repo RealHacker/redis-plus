@@ -173,6 +173,7 @@ struct redisCommand redisCommandTable[] = {
     {"sunion",sunionCommand,-2,"rS",0,NULL,1,-1,1,0,0},
     {"sunionstore",sunionstoreCommand,-3,"wm",0,NULL,1,-1,1,0,0},
     {"sdiff",sdiffCommand,-2,"rS",0,NULL,1,-1,1,0,0},
+    {"sxor",sxorCommand,3,"rS",0,NULL,1,-1,1,0,0},
     {"sdiffstore",sdiffstoreCommand,-3,"wm",0,NULL,1,-1,1,0,0},
     {"smembers",sinterCommand,2,"rS",0,NULL,1,1,1,0,0},
     {"sscan",sscanCommand,-3,"rR",0,NULL,1,1,1,0,0},
