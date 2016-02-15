@@ -352,7 +352,7 @@ void lfindCommand(client* c) {
     if ((getLongFromObjectOrReply(c, c->argv[2], &startpos, NULL) != C_OK))
         return;
 
-    subject = lookupKeyWrite(c,c->argv[1]);
+    subject = lookupKeyWrite(c->db, c->argv[1]);
     if (subject == NULL || checkType(c,subject,OBJ_LIST) || startpos >= listTypeLength(subject)) {
         addReplyLongLong(c, -1);
         return;

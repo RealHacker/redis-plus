@@ -704,7 +704,7 @@ void hpopCommand(client *c){
     int deleted = 0, keyremoved = 0;
 
     // make sure the key refers to a HASH
-    if (( o = lookupKeyWrite(c, c->argv[1])) == NULL || checkType(c, o, OBJ_HASH)) {
+    if (( o = lookupKeyWrite(c->db, c->argv[1])) == NULL || checkType(c, o, OBJ_HASH)) {
         addReply(c, shared.wrongtypeerr);
         return;
     }

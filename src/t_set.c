@@ -1122,10 +1122,11 @@ void sxorCommand(client *c){
 
     robj *dstset = createIntsetObject();
     setTypeIterator *si;
+    robj* ele;
 
     si = setTypeInitIterator(setobj1);
     while((ele = setTypeNextObject(si)) != NULL) {
-        if (setTypeIsMember(setobj2,ele)) break;
+        if (setTypeIsMember(setobj2,ele)) continue;
         setTypeAdd(dstset,ele);
         cardinality++;
         decrRefCount(ele);
@@ -1134,7 +1135,7 @@ void sxorCommand(client *c){
 
     si = setTypeInitIterator(setobj2);
     while((ele = setTypeNextObject(si)) != NULL) {
-        if (setTypeIsMember(setobj1,ele)) break;
+        if (setTypeIsMember(setobj1,ele)) continue;
         setTypeAdd(dstset,ele);
         cardinality++;
         decrRefCount(ele);
